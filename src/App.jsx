@@ -62,6 +62,41 @@ export default function App() {
   // Nhân viên được chọn để hiển thị chi tiết bên trang Công việc theo nhân sự
   const [selectedStaff, setSelectedStaff] = useState(null);
 
+  // Authentication States
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem("isLoggedIn") === "true";
+  });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    setLoginError("");
+
+    if (loginEmail.trim() === "PhongHC2023@gmail.com" && loginPassword === "Phonghanhchinh23") {
+      setIsLoggingIn(true);
+      setTimeout(() => {
+        setIsLoggedIn(true);
+        setIsLoggingIn(false);
+        localStorage.setItem("isLoggedIn", "true");
+        setLoginEmail("");
+        setLoginPassword("");
+      }, 800);
+    } else {
+      setLoginError("Email hoặc mật khẩu không chính xác.");
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+      localStorage.removeItem("isLoggedIn");
+      setIsLoggedIn(false);
+      setSidebarOpen(false);
+    }
+  };
+
   // Initialize and load data on component mount
   useEffect(() => {
     dataService.init();
@@ -272,6 +307,74 @@ export default function App() {
     }
   };
 
+  if (!isLoggedIn) {
+    return (
+      <div className="login-wrapper">
+        <div className="login-card animate-fade-in">
+          <div className="login-logo-section" style={{ display: "flex", alignItems: "center", gap: "12px", justifyContent: "center", marginBottom: "20px" }}>
+            <div className="logo-icon" style={{ width: "42px", height: "42px", fontSize: "1.3rem" }}>HC</div>
+            <div className="logo-text" style={{ textAlign: "left" }}>
+              <h1 style={{ fontSize: "1rem", fontWeight: 700, color: "white", margin: 0, letterSpacing: "1px" }}>HÀNH CHÍNH</h1>
+              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>BÀ NÀ HILLS</span>
+            </div>
+          </div>
+          
+          <h2 className="login-title" style={{ fontSize: "1.2rem", fontWeight: 700, textAlign: "center", color: "white", marginBottom: "8px" }}>Đăng Nhập Hệ Thống</h2>
+          <p className="login-subtitle" style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center", marginBottom: "24px", lineHeight: "1.4" }}>
+            Vui lòng đăng nhập để truy cập Cổng quản lý công việc Phòng Hành chính
+          </p>
+          
+          <form onSubmit={handleLoginSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "rgba(255, 255, 255, 0.8)", textAlign: "left" }}>Email tài khoản</label>
+              <input
+                type="email"
+                placeholder="name@gmail.com"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="form-control"
+                style={{ padding: "10px 12px", backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "white", borderRadius: "var(--radius-md)" }}
+                required
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "rgba(255, 255, 255, 0.8)", textAlign: "left" }}>Mật khẩu</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="form-control"
+                style={{ padding: "10px 12px", backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "white", borderRadius: "var(--radius-md)" }}
+                required
+              />
+            </div>
+
+            {loginError && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#f87171", fontSize: "0.8rem", backgroundColor: "rgba(239, 68, 68, 0.1)", padding: "10px 12px", borderRadius: "var(--radius-sm)", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <button type="submit" disabled={isLoggingIn} className="btn-primary" style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", padding: "12px", marginTop: "8px", borderRadius: "var(--radius-md)", fontSize: "0.9rem" }}>
+              {isLoggingIn ? (
+                <div className="spinner-sm" style={{ width: "20px", height: "20px", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}></div>
+              ) : (
+                <span>Đăng nhập</span>
+              )}
+            </button>
+          </form>
+          
+          <div style={{ marginTop: "32px", fontSize: "0.7rem", color: "rgba(255, 255, 255, 0.4)", textAlign: "center" }}>
+            © 2026 Bản quyền thuộc Sun Group Bà Nà Hills
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
@@ -281,6 +384,7 @@ export default function App() {
         stats={stats}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        onLogout={handleLogout}
       />
 
       {/* Sidebar Backdrop Overlay on Mobile */}

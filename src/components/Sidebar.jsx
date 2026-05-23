@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Sidebar({ currentPage, setCurrentPage, stats, sidebarOpen, setSidebarOpen }) {
+export default function Sidebar({ currentPage, setCurrentPage, stats, sidebarOpen, setSidebarOpen, onLogout }) {
   const menuItems = [
     {
       id: "dashboard",
@@ -129,7 +129,29 @@ export default function Sidebar({ currentPage, setCurrentPage, stats, sidebarOpe
         ))}
       </nav>
       <div className="sidebar-footer">
-        <p>Quản lý Công việc © 2026</p>
+        <button className="btn-logout" onClick={onLogout} title="Đăng xuất khỏi hệ thống" style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          padding: "8px 12px",
+          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          color: "#f87171",
+          border: "1px solid rgba(239, 68, 68, 0.2)",
+          borderRadius: "var(--radius-md)",
+          fontSize: "0.85rem",
+          fontWeight: 600,
+          cursor: "pointer",
+          transition: "var(--transition-fast)"
+        }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+        <p style={{ marginTop: "12px" }}>Quản lý Công việc © 2026</p>
         <p style={{ marginTop: "4px", fontSize: "0.7rem", opacity: 0.6 }}>Phòng Hành chính Nhân sự</p>
       </div>
     </div>
