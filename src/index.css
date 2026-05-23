@@ -1117,7 +1117,6 @@ body {
 
 /* DONUT CHART STYLES */
 .donut-segment {
-  transform-origin: center;
   transition: stroke-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease;
 }
 
