@@ -1,13 +1,22 @@
 import React, { useState } from "react";
 import { dateUtils } from "../services/dataService";
 
-export default function TaskList({ tasks, staffList, onEditTask, onDeleteTask, onAddTask }) {
-  // Search and Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStaff, setFilterStaff] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
-  const [filterPriority, setFilterPriority] = useState("");
-  const [filterDeadline, setFilterDeadline] = useState("all"); // all, overdue, today, week, month
+export default function TaskList({ tasks, staffList, onEditTask, onDeleteTask, onAddTask, filters, setFilters }) {
+  // Destructure filters passed from App component
+  const {
+    searchTerm = "",
+    filterStaff = "",
+    filterStatus = "",
+    filterPriority = "",
+    filterDeadline = "all"
+  } = filters || {};
+
+  // Setter helpers that delegate updates to the parent state
+  const setSearchTerm = (val) => setFilters(prev => ({ ...prev, searchTerm: typeof val === "function" ? val(prev.searchTerm) : val }));
+  const setFilterStaff = (val) => setFilters(prev => ({ ...prev, filterStaff: typeof val === "function" ? val(prev.filterStaff) : val }));
+  const setFilterStatus = (val) => setFilters(prev => ({ ...prev, filterStatus: typeof val === "function" ? val(prev.filterStatus) : val }));
+  const setFilterPriority = (val) => setFilters(prev => ({ ...prev, filterPriority: typeof val === "function" ? val(prev.filterPriority) : val }));
+  const setFilterDeadline = (val) => setFilters(prev => ({ ...prev, filterDeadline: typeof val === "function" ? val(prev.filterDeadline) : val }));
 
   // Sorting state
   const [sortField, setSortField] = useState(""); // ngayGiao, deadline, phanTramHoanThanh

@@ -394,6 +394,19 @@ body {
   gap: 12px;
 }
 
+.chart-row.clickable {
+  cursor: pointer;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.chart-row.clickable:hover {
+  background-color: var(--bg-main);
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
 .chart-label {
   width: 130px;
   font-size: 0.8rem;

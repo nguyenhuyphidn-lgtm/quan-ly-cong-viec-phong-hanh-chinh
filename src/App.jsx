@@ -50,6 +50,18 @@ export default function App() {
   const [deletingTaskStt, setDeletingTaskStt] = useState(null);
   const [deletingStaffStt, setDeletingStaffStt] = useState(null);
 
+  // Lọc nâng cao cho trang danh sách công việc
+  const [taskFilters, setTaskFilters] = useState({
+    searchTerm: "",
+    filterStaff: "",
+    filterStatus: "",
+    filterPriority: "",
+    filterDeadline: "all"
+  });
+
+  // Nhân viên được chọn để hiển thị chi tiết bên trang Công việc theo nhân sự
+  const [selectedStaff, setSelectedStaff] = useState(null);
+
   // Initialize and load data on component mount
   useEffect(() => {
     dataService.init();
@@ -142,11 +154,48 @@ export default function App() {
     setCurrentPage("dashboard");
   };
 
+  // Điều hướng lọc từ Dashboard
+  const handleSelectStatusFilter = (status) => {
+    setTaskFilters({
+      searchTerm: "",
+      filterStaff: "",
+      filterStatus: status,
+      filterPriority: "",
+      filterDeadline: "all"
+    });
+    setCurrentPage("tasks");
+  };
+
+  const handleSelectPriorityFilter = (priority) => {
+    setTaskFilters({
+      searchTerm: "",
+      filterStaff: "",
+      filterStatus: "",
+      filterPriority: priority,
+      filterDeadline: "all"
+    });
+    setCurrentPage("tasks");
+  };
+
+  const handleSelectStaffFilter = (staffName) => {
+    const staff = staffList.find(s => s.hoTen.toLowerCase() === staffName.toLowerCase());
+    setSelectedStaff(staff || null);
+    setCurrentPage("byStaff");
+  };
+
   // Render current page content
   const renderPageContent = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard stats={stats} onEditTask={handleEditTaskClick} />;
+        return (
+          <Dashboard
+            stats={stats}
+            onEditTask={handleEditTaskClick}
+            onSelectStatusFilter={handleSelectStatusFilter}
+            onSelectPriorityFilter={handleSelectPriorityFilter}
+            onSelectStaffFilter={handleSelectStaffFilter}
+          />
+        );
       case "tasks":
         return (
           <TaskList
@@ -155,6 +204,8 @@ export default function App() {
             onEditTask={handleEditTaskClick}
             onDeleteTask={handleDeleteTaskClick}
             onAddTask={handleAddTaskClick}
+            filters={taskFilters}
+            setFilters={setTaskFilters}
           />
         );
       case "byStaff":
@@ -164,6 +215,8 @@ export default function App() {
             staffList={staffList}
             stats={stats}
             onEditTask={handleEditTaskClick}
+            selectedStaff={selectedStaff}
+            setSelectedStaff={setSelectedStaff}
           />
         );
       case "byPriority":

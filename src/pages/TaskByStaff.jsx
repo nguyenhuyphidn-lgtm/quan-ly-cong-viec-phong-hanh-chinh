@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { dateUtils } from "../services/dataService";
 
-export default function TaskByStaff({ tasks, staffList, stats, onEditTask }) {
-  const [selectedStaff, setSelectedStaff] = useState(null);
+export default function TaskByStaff({ tasks, staffList, stats, onEditTask, selectedStaff, setSelectedStaff }) {
 
   // Helper to get initials of a name
   const getInitials = (name) => {

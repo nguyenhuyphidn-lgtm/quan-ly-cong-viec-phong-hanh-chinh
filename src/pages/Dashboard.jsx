@@ -1,7 +1,7 @@
 import React from "react";
 import { dateUtils } from "../services/dataService";
 
-export default function Dashboard({ stats, onEditTask }) {
+export default function Dashboard({ stats, onEditTask, onSelectStatusFilter, onSelectPriorityFilter, onSelectStaffFilter }) {
   const formatCurrency = (value) => {
     if (!value) return "0 VNĐ";
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -153,7 +153,7 @@ export default function Dashboard({ stats, onEditTask }) {
                 : status === "Hoàn thành" ? "status-hoan-thanh" 
                 : status === "Tạm dừng" ? "status-tam-dung" : "status-cham-tien-do";
               return (
-                <div key={status} className="chart-row">
+                <div key={status} className="chart-row clickable" onClick={() => onSelectStatusFilter && onSelectStatusFilter(status)}>
                   <span className="chart-label">{status}</span>
                   <div className="chart-bar-wrapper">
                     <div className={`chart-bar ${barClass}`} style={{ width: `${percentage}%` }}></div>
@@ -175,7 +175,7 @@ export default function Dashboard({ stats, onEditTask }) {
                 : prio.includes("Cao") ? "prio-high" 
                 : prio.includes("Trung bình") ? "prio-medium" : "prio-low";
               return (
-                <div key={prio} className="chart-row">
+                <div key={prio} className="chart-row clickable" onClick={() => onSelectPriorityFilter && onSelectPriorityFilter(prio)}>
                   <span className="chart-label">{prio}</span>
                   <div className="chart-bar-wrapper">
                     <div className={`chart-bar ${barClass}`} style={{ width: `${percentage}%` }}></div>
@@ -194,7 +194,7 @@ export default function Dashboard({ stats, onEditTask }) {
             {stats.staffStats.map((s) => {
               const percentage = (s.total / staffMax) * 100;
               return (
-                <div key={s.stt} className="chart-row">
+                <div key={s.stt} className="chart-row clickable" onClick={() => onSelectStaffFilter && onSelectStaffFilter(s.hoTen)}>
                   <span className="chart-label" style={{ fontWeight: 600 }}>{s.hoTen}</span>
                   <div className="chart-bar-wrapper" style={{ height: "14px" }}>
                     <div className="chart-bar generic" style={{ width: `${percentage}%` }}></div>
