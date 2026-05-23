@@ -66,7 +66,33 @@ export default function App() {
   useEffect(() => {
     dataService.init();
     loadAllData();
+
+    // Set initial page from URL hash on load
+    const hash = window.location.hash.replace("#", "");
+    const validPages = ["dashboard", "tasks", "byStaff", "byPriority", "overdue", "staff", "reports", "settings"];
+    if (validPages.includes(hash)) {
+      setCurrentPage(hash);
+    } else {
+      window.location.hash = "dashboard";
+    }
+
+    // Listen to browser Back/Forward events (e.g. hash changes)
+    const handleHashChange = () => {
+      const currentHash = window.location.hash.replace("#", "");
+      if (validPages.includes(currentHash)) {
+        setCurrentPage(currentHash);
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
+
+  // Sync state changes to browser hash (for native back button history)
+  useEffect(() => {
+    if (window.location.hash.replace("#", "") !== currentPage) {
+      window.location.hash = currentPage;
+    }
+  }, [currentPage]);
 
   const loadAllData = () => {
     const loadedTasks = dataService.getTasks();
