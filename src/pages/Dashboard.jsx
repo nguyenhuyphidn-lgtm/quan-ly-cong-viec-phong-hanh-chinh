@@ -1,6 +1,95 @@
 import React from "react";
 import { dateUtils } from "../services/dataService";
 
+function DonutChart({ data, colors, onClickItem }) {
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  
+  if (total === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+        Không có dữ liệu công việc.
+      </div>
+    );
+  }
+
+  const radius = 25;
+  const circumference = 2 * Math.PI * radius; // ~157.08
+  let accumulatedCount = 0;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "24px", justifyContent: "space-between", flexWrap: "wrap", width: "100%" }}>
+      {/* SVG Circle */}
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "140px", height: "140px", flexShrink: 0, position: "relative" }}>
+        <svg width="130" height="130" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+          {data.map((item) => {
+            if (item.count === 0) return null;
+            
+            const percentage = item.count / total;
+            const strokeLength = circumference * percentage;
+            const strokeGap = circumference - strokeLength;
+            
+            const angle = (accumulatedCount / total) * 360;
+            accumulatedCount += item.count;
+
+            return (
+              <circle
+                key={item.label}
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="transparent"
+                stroke={colors[item.label]}
+                strokeWidth="11"
+                strokeDasharray={`${strokeLength} ${strokeGap}`}
+                transform={`rotate(${angle} 50 50)`}
+                className="donut-segment"
+                onClick={() => onClickItem && onClickItem(item.label)}
+                style={{ cursor: "pointer" }}
+              />
+            );
+          })}
+          {/* Inner hole */}
+          <circle cx="50" cy="50" r="18" fill="white" />
+        </svg>
+        {/* Central count text */}
+        <div style={{ position: "absolute", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+          <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--primary)" }}>{total}</span>
+          <span style={{ fontSize: "0.6rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" }}>Việc</span>
+        </div>
+      </div>
+
+      {/* Legends list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1, minWidth: "150px" }}>
+        {data.map((item) => {
+          const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
+          return (
+            <div
+              key={item.label}
+              className="chart-legend-row"
+              onClick={() => onClickItem && onClickItem(item.label)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                padding: "4px 8px",
+                borderRadius: "var(--radius-sm)",
+                transition: "var(--transition-fast)"
+              }}
+            >
+              <span style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: colors[item.label], flexShrink: 0 }}></span>
+              <span style={{ flex: 1, fontWeight: 500, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+              <span style={{ fontWeight: 700, color: "var(--primary)", width: "20px", textAlign: "right" }}>{item.count}</span>
+              <span style={{ color: "var(--text-muted)", width: "35px", textAlign: "right", fontWeight: 600 }}>{percentage}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard({ stats, onEditTask, onSelectStatusFilter, onSelectPriorityFilter, onSelectStaffFilter }) {
   const formatCurrency = (value) => {
     if (!value) return "0 VNĐ";
@@ -12,6 +101,24 @@ export default function Dashboard({ stats, onEditTask, onSelectStatusFilter, onS
     const vals = Object.values(obj);
     return vals.length > 0 ? Math.max(...vals, 1) : 1;
   };
+
+  const statusColors = {
+    "Chưa thực hiện": "var(--status-pending)",
+    "Đang thực hiện": "var(--status-progress)",
+    "Hoàn thành": "var(--status-completed)",
+    "Tạm dừng": "var(--status-paused)",
+    "Chậm tiến độ": "var(--status-delayed)"
+  };
+
+  const priorityColors = {
+    "0. Khẩn cấp": "var(--prio-urgent)",
+    "1. Cao": "var(--prio-high)",
+    "2. Trung bình": "var(--prio-medium)",
+    "3. Thấp": "var(--prio-low)"
+  };
+
+  const statusChartData = Object.entries(stats.statusCounts).map(([label, count]) => ({ label, count }));
+  const priorityChartData = Object.entries(stats.priorityCounts).map(([label, count]) => ({ label, count }));
 
   const statusMax = getMaxVal(stats.statusCounts);
   const priorityMax = getMaxVal(stats.priorityCounts);
@@ -145,45 +252,24 @@ export default function Dashboard({ stats, onEditTask, onSelectStatusFilter, onS
         {/* Chart 1: Status */}
         <div className="chart-card">
           <h3 className="chart-header">Số lượng công việc theo Trạng thái</h3>
-          <div className="chart-container">
-            {Object.entries(stats.statusCounts).map(([status, count]) => {
-              const percentage = (count / statusMax) * 100;
-              const barClass = status === "Chưa thực hiện" ? "status-chua-thuc-hien" 
-                : status === "Đang thực hiện" ? "status-dang-thuc-hien" 
-                : status === "Hoàn thành" ? "status-hoan-thanh" 
-                : status === "Tạm dừng" ? "status-tam-dung" : "status-cham-tien-do";
-              return (
-                <div key={status} className="chart-row clickable" onClick={() => onSelectStatusFilter && onSelectStatusFilter(status)}>
-                  <span className="chart-label">{status}</span>
-                  <div className="chart-bar-wrapper">
-                    <div className={`chart-bar ${barClass}`} style={{ width: `${percentage}%` }}></div>
-                  </div>
-                  <span className="chart-value">{count}</span>
-                </div>
-              );
-            })}
+          <div className="chart-container" style={{ minHeight: "180px", justifyContent: "center" }}>
+            <DonutChart
+              data={statusChartData}
+              colors={statusColors}
+              onClickItem={onSelectStatusFilter}
+            />
           </div>
         </div>
 
         {/* Chart 2: Priority */}
         <div className="chart-card">
           <h3 className="chart-header">Số lượng công việc theo Mức ưu tiên</h3>
-          <div className="chart-container">
-            {Object.entries(stats.priorityCounts).map(([prio, count]) => {
-              const percentage = (count / priorityMax) * 100;
-              const barClass = prio.includes("Khẩn cấp") ? "prio-urgent" 
-                : prio.includes("Cao") ? "prio-high" 
-                : prio.includes("Trung bình") ? "prio-medium" : "prio-low";
-              return (
-                <div key={prio} className="chart-row clickable" onClick={() => onSelectPriorityFilter && onSelectPriorityFilter(prio)}>
-                  <span className="chart-label">{prio}</span>
-                  <div className="chart-bar-wrapper">
-                    <div className={`chart-bar ${barClass}`} style={{ width: `${percentage}%` }}></div>
-                  </div>
-                  <span className="chart-value">{count}</span>
-                </div>
-              );
-            })}
+          <div className="chart-container" style={{ minHeight: "180px", justifyContent: "center" }}>
+            <DonutChart
+              data={priorityChartData}
+              colors={priorityColors}
+              onClickItem={onSelectPriorityFilter}
+            />
           </div>
         </div>
 
