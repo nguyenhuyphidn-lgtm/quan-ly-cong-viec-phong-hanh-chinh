@@ -64,7 +64,7 @@ export default function App() {
 
   // Authentication States
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem("isLoggedIn") === "true";
+    return sessionStorage.getItem("isLoggedIn") === "true";
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginEmail, setLoginEmail] = useState("PhongHC2023@gmail.com");
@@ -80,7 +80,7 @@ export default function App() {
       setTimeout(() => {
         setIsLoggedIn(true);
         setIsLoggingIn(false);
-        localStorage.setItem("isLoggedIn", "true");
+        sessionStorage.setItem("isLoggedIn", "true");
         setLoginPassword("");
       }, 800);
     } else {
@@ -90,7 +90,7 @@ export default function App() {
 
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-      localStorage.removeItem("isLoggedIn");
+      sessionStorage.removeItem("isLoggedIn");
       setIsLoggedIn(false);
       setSidebarOpen(false);
     }
@@ -346,6 +346,7 @@ export default function App() {
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="form-control"
                 style={{ padding: "10px 12px", backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "white", borderRadius: "var(--radius-md)" }}
+                autoComplete="new-password"
                 required
               />
             </div>
