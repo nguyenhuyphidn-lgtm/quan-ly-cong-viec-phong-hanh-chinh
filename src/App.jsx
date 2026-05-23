@@ -67,7 +67,7 @@ export default function App() {
     return localStorage.getItem("isLoggedIn") === "true";
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState("PhongHC2023@gmail.com");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
@@ -81,7 +81,6 @@ export default function App() {
         setIsLoggedIn(true);
         setIsLoggingIn(false);
         localStorage.setItem("isLoggedIn", "true");
-        setLoginEmail("");
         setLoginPassword("");
       }, 800);
     } else {
