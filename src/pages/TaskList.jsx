@@ -327,6 +327,76 @@ export default function TaskList({ tasks, staffList, onEditTask, onDeleteTask, o
             </table>
           )}
         </div>
+
+        {/* Mobile Task Cards View */}
+        <div className="mobile-task-cards">
+          {sortedTasks.length === 0 ? (
+            <div style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
+              Không tìm thấy công việc nào thỏa mãn bộ lọc.
+            </div>
+          ) : (
+            sortedTasks.map((t, idx) => {
+              const isOverdue = dateUtils.isOverdue(t);
+              const statusClass = t.trangThai === "Chưa thực hiện" ? "status-chua-thuc-hien" 
+                : t.trangThai === "Đang thực hiện" ? "status-dang-thuc-hien" 
+                : t.trangThai === "Hoàn thành" ? "status-hoan-thanh" 
+                : t.trangThai === "Tạm dừng" ? "status-tam-dung" : "status-cham-tien-do";
+              
+              const prioClass = t.uuTien.includes("Khẩn cấp") ? "prio-urgent" 
+                : t.uuTien.includes("Cao") ? "prio-high" 
+                : t.uuTien.includes("Trung bình") ? "prio-medium" : "prio-low";
+
+              return (
+                <div key={t.stt} className={`mobile-task-card ${isOverdue ? "overdue-flash" : ""}`} style={{ borderLeft: isOverdue ? "4px solid var(--status-delayed)" : "4px solid var(--primary-accent)" }}>
+                  <div className="mobile-task-card-header">
+                    <span className="badge-idx"># {idx + 1}</span>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <span className={`badge ${prioClass}`}>{t.uuTien}</span>
+                      <span className={`badge ${statusClass}`}>{t.trangThai}</span>
+                    </div>
+                  </div>
+                  <div className="mobile-task-card-title">{t.noiDung}</div>
+                  
+                  <div className="mobile-task-card-meta">
+                    <div><strong>Đầu mối:</strong> {t.nhanSuDauMoi}</div>
+                    {t.phoiHop && <div><strong>Phối hợp:</strong> {t.phoiHop}</div>}
+                    <div><strong>Ngày giao:</strong> {t.ngayGiao}</div>
+                    <div style={{ color: isOverdue ? "var(--status-delayed)" : "inherit", fontWeight: isOverdue ? 700 : "normal" }}>
+                      <strong>Deadline:</strong> {t.deadline}
+                    </div>
+                    {t.nganSach > 0 && <div><strong>Ngân sách:</strong> {formatCurrency(t.nganSach)}</div>}
+                  </div>
+
+                  {t.lyDoCham && (
+                    <div className="mobile-task-card-delay-reason">
+                      <strong>Lý do chậm:</strong> {t.lyDoCham}
+                    </div>
+                  )}
+
+                  <div className="mobile-task-card-footer">
+                    <div className="progress-bar-container" style={{ minWidth: "120px" }}>
+                      <div className="progress-track">
+                        <div className="progress-fill" style={{ width: `${t.phanTramHoanThanh}%`, backgroundColor: t.phanTramHoanThanh >= 100 ? "var(--status-completed)" : "var(--status-progress)" }}></div>
+                      </div>
+                      <span className="progress-text">{t.phanTramHoanThanh}%</span>
+                    </div>
+                    <div className="actions-cell">
+                      <button className="btn-icon view" title="Xem Chi tiết" onClick={() => setViewingTask(t)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                      </button>
+                      <button className="btn-icon edit" title="Sửa" onClick={() => onEditTask(t)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                      </button>
+                      <button className="btn-icon delete" title="Xóa" onClick={() => onDeleteTask(t.stt)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
 
       {/* Task Details Modal */}

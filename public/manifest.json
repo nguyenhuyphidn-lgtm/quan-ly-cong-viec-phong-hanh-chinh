@@ -1,0 +1,24 @@
+{
+  "short_name": "QLCV HC",
+  "name": "QUẢN LÝ CÔNG VIỆC PHÒNG HÀNH CHÍNH",
+  "description": "Hệ thống quản lý công việc và nhân sự nội bộ phòng Hành chính - Sun Group Bà Nà Hills",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/#dashboard",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

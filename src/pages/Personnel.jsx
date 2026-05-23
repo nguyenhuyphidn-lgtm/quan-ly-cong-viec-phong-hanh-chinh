@@ -111,6 +111,61 @@ export default function Personnel({ staffList, onSaveStaff, onDeleteStaff }) {
             </tbody>
           </table>
         </div>
+        
+        {/* Mobile Personnel Cards View */}
+        <div className="mobile-personnel-cards">
+          {staffList.map((s, index) => (
+            <div key={s.stt} className="mobile-personnel-card">
+              <div className="mobile-personnel-card-header">
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div className="avatar-placeholder-sm" style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--radius-full)",
+                    backgroundColor: "var(--primary-accent)",
+                    color: "white",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.85rem",
+                    boxShadow: "0 2px 4px rgba(2, 132, 199, 0.15)"
+                  }}>
+                    {s.hoTen.split(" ").pop().substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="mobile-personnel-name" style={{ fontWeight: 700, color: "var(--primary)", fontSize: "0.9rem" }}>{s.hoTen}</div>
+                    <span className="badge-idx" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>STT: {index + 1}</span>
+                  </div>
+                </div>
+                <div className="actions-cell">
+                  <button className="btn-icon edit" title="Sửa" onClick={() => handleStartEdit(s)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  </button>
+                  <button className="btn-icon delete" title="Xóa" onClick={() => onDeleteStaff(s.stt)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div className="mobile-personnel-card-body" style={{ padding: "12px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.8rem" }}>
+                <div>
+                  <strong style={{ color: "var(--text-muted)" }}>Mảng phụ trách: </strong>
+                  <span>{s.mangCongViec}</span>
+                </div>
+                <div>
+                  <strong style={{ color: "var(--text-muted)" }}>Email: </strong>
+                  <span className="staff-email-badge">{s.email}</span>
+                </div>
+                {s.ghiChu && (
+                  <div>
+                    <strong style={{ color: "var(--text-muted)" }}>Ghi chú: </strong>
+                    <span>{s.ghiChu}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Staff Form Modal */}

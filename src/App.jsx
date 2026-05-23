@@ -283,6 +283,21 @@ export default function App() {
         setSidebarOpen={setSidebarOpen}
       />
 
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}></div>
+      )}
+
+      {/* Floating Action Button (FAB) on Mobile */}
+      {currentPage !== "reports" && currentPage !== "settings" && currentPage !== "staff" && (
+        <button className="mobile-fab" onClick={handleAddTaskClick} title="Thêm công việc mới">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: "24px", height: "24px" }}>
+            <line x1="12" x2="12" y1="5" y2="19" />
+            <line x1="5" x2="19" y1="12" y2="12" />
+          </svg>
+        </button>
+      )}
+
       {/* Main Content Area */}
       <div className="main-content">
         {/* Mobile Header Toggle */}
