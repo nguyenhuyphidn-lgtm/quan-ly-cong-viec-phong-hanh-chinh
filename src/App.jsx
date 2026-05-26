@@ -483,7 +483,7 @@ export default function App() {
       {/* Main Content Area */}
       <div className="main-content">
         {/* Mobile Header Toggle */}
-        <div className="mobile-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="mobile-header">
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(prev => !prev)}>
               ☰
