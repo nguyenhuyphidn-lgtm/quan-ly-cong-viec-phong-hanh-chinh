@@ -1,3 +1,13 @@
+import { db } from "./firebase";
+import { 
+  collection, 
+  doc, 
+  getDocs, 
+  setDoc, 
+  deleteDoc, 
+  writeBatch 
+} from "firebase/firestore";
+
 // Default initial personnel data
 const DEFAULT_STAFF = [
   {
@@ -77,7 +87,7 @@ const DEFAULT_TASKS = [
   {
     stt: 1,
     noiDung: "Cải tạo chất lượng sóng Wifi tại Sunhome Bà Nà",
-    nhanSuDauMoi: "Đỗ Hữu Trường", // Mapped to full name for consistency
+    nhanSuDauMoi: "Đỗ Hữu Trường",
     phoiHop: "Anh Vinh IT",
     ngayGiao: "17/05/2026",
     deadline: "30/05/2026",
@@ -114,8 +124,8 @@ const DEFAULT_TASKS = [
     uuTien: "2. Trung bình",
     nguonThongTin: "BP. An toàn",
     trangThai: "Hoàn thành",
-    phanTramHoanThanh: 100, // Corrected to 100% since it is completed (or user logic automatically promotes it)
-    nganSach: 1200000000, // Added dummy budget for demo
+    phanTramHoanThanh: 100,
+    nganSach: 1200000000,
     ghiChu: "",
     lyDoCham: ""
   },
@@ -124,7 +134,7 @@ const DEFAULT_TASKS = [
     noiDung: "Mua sắm các thiết bị bếp căng tin",
     nhanSuDauMoi: "Phạm Minh Vương",
     phoiHop: "BP cung ứng",
-    ngayGiao: "10/05/2026", // Corrected year/month to match realistic timeframe (user put 10/10/2026, let's keep 10/05/2026)
+    ngayGiao: "10/05/2026",
     deadline: "15/06/2026",
     uuTien: "2. Trung bình",
     nguonThongTin: "TBP triển khai",
@@ -139,7 +149,7 @@ const DEFAULT_TASKS = [
     noiDung: "Thực hiện đơn hàng đồng phục Lễ hội beer",
     nhanSuDauMoi: "Nguyễn Thị Minh Diệu",
     phoiHop: "BP cung ứng",
-    ngayGiao: "10/05/2026", // Corrected from 10/10/2026
+    ngayGiao: "10/05/2026",
     deadline: "15/06/2026",
     uuTien: "1. Cao",
     nguonThongTin: "Ban Ẩm thực",
@@ -165,13 +175,6 @@ const DEFAULT_TASKS = [
     lyDoCham: ""
   }
 ];
-
-// Key names for LocalStorage
-const STORAGE_KEYS = {
-  TASKS: "qlcv_admin_tasks_v1",
-  STAFF: "qlcv_admin_staff_v1",
-  CATEGORIES: "qlcv_admin_categories_v1"
-};
 
 // Date utilities
 export const dateUtils = {
@@ -215,12 +218,9 @@ export const dateUtils = {
 
   // Get current date representation for comparison
   getCurrentDate() {
-    // Current time according to system/metadata (normally 2026-05-23 in the prompt context)
-    // We will use standard Date but enable fallback to ensure it matches the 2026 context
     const d = new Date();
-    // If the system date is before 2026 (e.g. testing in 2024), we map it to 2026-05-23
     if (d.getFullYear() < 2026) {
-      return new Date(2026, 4, 23); // 23 May 2026 (0-indexed month)
+      return new Date(2026, 4, 23); // 23 May 2026
     }
     return d;
   },
@@ -229,7 +229,6 @@ export const dateUtils = {
   getDaysDifference(date1, date2) {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
-    // Reset hours to avoid timezone/DST issues
     d1.setHours(0, 0, 0, 0);
     d2.setHours(0, 0, 0, 0);
     const diffTime = d2.getTime() - d1.getTime();
@@ -248,105 +247,154 @@ export const dateUtils = {
 
 // Data service main object
 export const dataService = {
-  // INITIALIZATION
-  init() {
-    if (!localStorage.getItem(STORAGE_KEYS.TASKS)) {
-      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(DEFAULT_TASKS));
+  // INITIALIZATION (Not strictly needed anymore, handled lazily, but kept for compatibility)
+  async init() {
+    // Lazily initialized in getTasks and getStaff
+  },
+
+  // SEEDERS
+  async seedDefaultTasks() {
+    try {
+      const batch = writeBatch(db);
+      DEFAULT_TASKS.forEach((t) => {
+        const docRef = doc(db, "phc_tasks", String(t.stt));
+        batch.set(docRef, t);
+      });
+      await batch.commit();
+      console.log("Firestore phc_tasks seeded successfully.");
+    } catch (e) {
+      console.error("Error seeding default tasks", e);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.STAFF)) {
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(DEFAULT_STAFF));
+  },
+
+  async seedDefaultStaff() {
+    try {
+      const batch = writeBatch(db);
+      DEFAULT_STAFF.forEach((s) => {
+        const docRef = doc(db, "phc_staff", String(s.stt));
+        batch.set(docRef, s);
+      });
+      await batch.commit();
+      console.log("Firestore phc_staff seeded successfully.");
+    } catch (e) {
+      console.error("Error seeding default staff", e);
     }
   },
 
   // TASKS API
-  getTasks() {
-    this.init();
+  async getTasks() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.TASKS)) || [];
+      const querySnapshot = await getDocs(collection(db, "phc_tasks"));
+      const tasks = [];
+      querySnapshot.forEach((docSnap) => {
+        tasks.push(docSnap.data());
+      });
+      if (tasks.length === 0) {
+        console.log("Firestore phc_tasks is empty. Seeding defaults...");
+        await this.seedDefaultTasks();
+        return DEFAULT_TASKS;
+      }
+      return tasks.sort((a, b) => a.stt - b.stt);
     } catch (e) {
-      console.error("Error reading tasks", e);
-      return DEFAULT_TASKS;
+      console.error("Error reading tasks from Firestore", e);
+      return [];
     }
   },
 
-  saveTask(task) {
-    const tasks = this.getTasks();
-    
-    // Automatically set % complete = 100 if status is "Hoàn thành"
+  async saveTask(task) {
     if (task.trangThai === "Hoàn thành") {
       task.phanTramHoanThanh = 100;
     }
 
+    let taskDoc;
     if (task.stt) {
-      // Edit existing
-      const index = tasks.findIndex(t => t.stt === task.stt);
-      if (index !== -1) {
-        tasks[index] = { ...tasks[index], ...task };
-      }
+      taskDoc = { ...task };
     } else {
-      // Add new
+      const tasks = await this.getTasks();
       const nextStt = tasks.length > 0 ? Math.max(...tasks.map(t => t.stt)) + 1 : 1;
-      const newTask = {
+      taskDoc = {
         ...task,
         stt: nextStt,
         phanTramHoanThanh: task.trangThai === "Hoàn thành" ? 100 : (Number(task.phanTramHoanThanh) || 0),
         nganSach: Number(task.nganSach) || 0
       };
-      tasks.push(newTask);
     }
-    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
-    return tasks;
+    
+    try {
+      const docRef = doc(db, "phc_tasks", String(taskDoc.stt));
+      await setDoc(docRef, taskDoc);
+      return taskDoc;
+    } catch (e) {
+      console.error("Error saving task to Firestore", e);
+      throw e;
+    }
   },
 
-  deleteTask(stt) {
-    const tasks = this.getTasks();
-    const filteredTasks = tasks.filter(t => t.stt !== stt);
-    // Re-index STT? Normally it's better to keep unique IDs, but since STT is a field we can optionally re-index, 
-    // or just leave it. Let's keep the STT as is, but we can display the index dynamically in the tables.
-    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(filteredTasks));
-    return filteredTasks;
+  async deleteTask(stt) {
+    try {
+      const docRef = doc(db, "phc_tasks", String(stt));
+      await deleteDoc(docRef);
+    } catch (e) {
+      console.error("Error deleting task from Firestore", e);
+      throw e;
+    }
   },
 
   // STAFF API
-  getStaff() {
-    this.init();
+  async getStaff() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.STAFF)) || [];
+      const querySnapshot = await getDocs(collection(db, "phc_staff"));
+      const staff = [];
+      querySnapshot.forEach((docSnap) => {
+        staff.push(docSnap.data());
+      });
+      if (staff.length === 0) {
+        console.log("Firestore phc_staff is empty. Seeding defaults...");
+        await this.seedDefaultStaff();
+        return DEFAULT_STAFF;
+      }
+      return staff.sort((a, b) => a.stt - b.stt);
     } catch (e) {
-      console.error("Error reading staff", e);
-      return DEFAULT_STAFF;
+      console.error("Error reading staff from Firestore", e);
+      return [];
     }
   },
 
-  saveStaff(staffMember) {
-    const staff = this.getStaff();
+  async saveStaff(staffMember) {
+    let staffDoc;
     if (staffMember.stt) {
-      const index = staff.findIndex(s => s.stt === staffMember.stt);
-      if (index !== -1) {
-        staff[index] = { ...staff[index], ...staffMember };
-      }
+      staffDoc = { ...staffMember };
     } else {
+      const staff = await this.getStaff();
       const nextStt = staff.length > 0 ? Math.max(...staff.map(s => s.stt)) + 1 : 1;
-      staff.push({
+      staffDoc = {
         ...staffMember,
         stt: nextStt
-      });
+      };
     }
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    return staff;
+    
+    try {
+      const docRef = doc(db, "phc_staff", String(staffDoc.stt));
+      await setDoc(docRef, staffDoc);
+      return staffDoc;
+    } catch (e) {
+      console.error("Error saving staff to Firestore", e);
+      throw e;
+    }
   },
 
-  deleteStaff(stt) {
-    const staff = this.getStaff();
-    const filteredStaff = staff.filter(s => s.stt !== stt);
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(filteredStaff));
-    return filteredStaff;
+  async deleteStaff(stt) {
+    try {
+      const docRef = doc(db, "phc_staff", String(stt));
+      await deleteDoc(docRef);
+    } catch (e) {
+      console.error("Error deleting staff from Firestore", e);
+      throw e;
+    }
   },
 
   // STATS & COMPUTATIONS
-  getStats() {
-    const tasks = this.getTasks();
-    const staff = this.getStaff();
+  getStats(tasks = [], staff = []) {
     const today = dateUtils.getCurrentDate();
 
     // 1. Core counters
@@ -357,27 +405,27 @@ export const dataService = {
     const pausedTasks = tasks.filter(t => t.trangThai === "Tạm dừng").length;
     const delayedTasksStatus = tasks.filter(t => t.trangThai === "Chậm tiến độ").length;
 
-    // 2. Urgent (Khẩn cấp: priority 0. Khẩn cấp)
+    // 2. Urgent
     const urgentTasks = tasks.filter(t => t.uuTien.startsWith("0") || t.uuTien.includes("Khẩn cấp")).length;
 
-    // 3. Overdue (Deadline passed and not completed)
+    // 3. Overdue
     const overdueTasksList = tasks.filter(t => dateUtils.isOverdue(t));
     const overdueCount = overdueTasksList.length;
 
-    // 4. Average Completion Rate (%)
+    // 4. Average Completion Rate
     const totalCompletion = tasks.reduce((sum, t) => sum + (Number(t.phanTramHoanThanh) || 0), 0);
     const avgCompletion = totalTasks > 0 ? Math.round(totalCompletion / totalTasks) : 0;
 
     // 5. Total Budget
     const totalBudget = tasks.reduce((sum, t) => sum + (Number(t.nganSach) || 0), 0);
 
-    // 6. Tasks by status for charts
+    // 6. Tasks by status
     const statusCounts = {
       "Chưa thực hiện": pendingTasks,
       "Đang thực hiện": inProgressTasks,
       "Hoàn thành": completedTasks,
       "Tạm dừng": pausedTasks,
-      "Chậm tiến độ": tasks.filter(t => t.trangThai === "Chậm tiến độ").length
+      "Chậm tiến độ": delayedTasksStatus
     };
 
     // 7. Tasks by priority
@@ -397,11 +445,10 @@ export const dataService = {
 
     // 8. Tasks by staff
     const staffStats = staff.map(s => {
-      // Map name shorthand to full names
       const staffTasks = tasks.filter(t => {
+        if (!t.nhanSuDauMoi) return false;
         const lead = t.nhanSuDauMoi.toLowerCase();
         const fullName = s.hoTen.toLowerCase();
-        // Check match either by exact or by last word/short name
         const lastName = s.hoTen.split(" ").pop().toLowerCase();
         return lead === fullName || lead === lastName;
       });
@@ -426,14 +473,13 @@ export const dataService = {
       };
     });
 
-    // 9. Top upcoming or overdue tasks (deadline in 7 days or overdue)
+    // 9. Top upcoming or overdue tasks
     const upcomingTasks = tasks
       .filter(t => {
         if (t.trangThai === "Hoàn thành") return false;
         const deadlineDate = dateUtils.parseDDMMYYYY(t.deadline);
         if (!deadlineDate) return false;
         const diff = dateUtils.getDaysDifference(today, deadlineDate);
-        // Overdue (diff < 0) or due within 7 days (0 <= diff <= 7)
         return diff <= 7;
       })
       .map(t => {
@@ -444,7 +490,7 @@ export const dataService = {
           daysLeft: diff
         };
       })
-      .sort((a, b) => a.daysLeft - b.daysLeft); // most urgent first
+      .sort((a, b) => a.daysLeft - b.daysLeft);
 
     return {
       totalTasks,
@@ -465,8 +511,27 @@ export const dataService = {
   },
 
   // Reset to default
-  resetData() {
-    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(DEFAULT_TASKS));
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(DEFAULT_STAFF));
+  async resetData() {
+    try {
+      const tasksSnap = await getDocs(collection(db, "phc_tasks"));
+      const taskBatch = writeBatch(db);
+      tasksSnap.forEach((docSnap) => {
+        taskBatch.delete(docSnap.ref);
+      });
+      await taskBatch.commit();
+
+      const staffSnap = await getDocs(collection(db, "phc_staff"));
+      const staffBatch = writeBatch(db);
+      staffSnap.forEach((docSnap) => {
+        staffBatch.delete(docSnap.ref);
+      });
+      await staffBatch.commit();
+
+      await this.seedDefaultTasks();
+      await this.seedDefaultStaff();
+    } catch (e) {
+      console.error("Error resetting Firestore database", e);
+      throw e;
+    }
   }
 };

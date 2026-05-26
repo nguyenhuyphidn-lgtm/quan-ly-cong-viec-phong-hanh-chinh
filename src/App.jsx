@@ -16,10 +16,13 @@ import Settings from "./pages/Settings";
 
 // Services
 import { dataService } from "./services/dataService";
+import { db } from "./services/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 export default function App() {
   // Initialization & Core States
   const [currentPage, setCurrentPage] = useState("dashboard");
+  const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [stats, setStats] = useState({
@@ -96,11 +99,8 @@ export default function App() {
     }
   };
 
-  // Initialize and load data on component mount
+  // Initialize and load data on component mount (with real-time sync)
   useEffect(() => {
-    dataService.init();
-    loadAllData();
-
     // Set initial page from URL hash on load
     const hash = window.location.hash.replace("#", "");
     const validPages = ["dashboard", "tasks", "byStaff", "byPriority", "overdue", "staff", "reports", "settings"];
@@ -118,7 +118,74 @@ export default function App() {
       }
     };
     window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+
+    // Setup realtime listeners for Tasks and Staff
+    let tasksLoaded = false;
+    let staffLoaded = false;
+
+    const checkLoadingState = (tLoaded, sLoaded) => {
+      if (tLoaded && sLoaded) {
+        setIsLoading(false);
+      }
+    };
+
+    const unsubscribeTasks = onSnapshot(collection(db, "phc_tasks"), (snapshot) => {
+      const loadedTasks = [];
+      snapshot.forEach((docSnap) => {
+        loadedTasks.push(docSnap.data());
+      });
+      loadedTasks.sort((a, b) => a.stt - b.stt);
+      setTasks(loadedTasks);
+      tasksLoaded = true;
+
+      if (loadedTasks.length === 0) {
+        // Trigger seeding
+        dataService.getTasks();
+      }
+
+      setStaffList(prevStaff => {
+        const calculatedStats = dataService.getStats(loadedTasks, prevStaff);
+        setStats(calculatedStats);
+        return prevStaff;
+      });
+
+      checkLoadingState(tasksLoaded, staffLoaded);
+    }, (error) => {
+      console.error("Tasks subscription error:", error);
+      setIsLoading(false);
+    });
+
+    const unsubscribeStaff = onSnapshot(collection(db, "phc_staff"), (snapshot) => {
+      const loadedStaff = [];
+      snapshot.forEach((docSnap) => {
+        loadedStaff.push(docSnap.data());
+      });
+      loadedStaff.sort((a, b) => a.stt - b.stt);
+      setStaffList(loadedStaff);
+      staffLoaded = true;
+
+      if (loadedStaff.length === 0) {
+        // Trigger seeding
+        dataService.getStaff();
+      }
+
+      setTasks(prevTasks => {
+        const calculatedStats = dataService.getStats(prevTasks, loadedStaff);
+        setStats(calculatedStats);
+        return prevTasks;
+      });
+
+      checkLoadingState(tasksLoaded, staffLoaded);
+    }, (error) => {
+      console.error("Staff subscription error:", error);
+      setIsLoading(false);
+    });
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      unsubscribeTasks();
+      unsubscribeStaff();
+    };
   }, []);
 
   // Sync state changes to browser hash (for native back button history)
@@ -127,16 +194,6 @@ export default function App() {
       window.location.hash = currentPage;
     }
   }, [currentPage]);
-
-  const loadAllData = () => {
-    const loadedTasks = dataService.getTasks();
-    const loadedStaff = dataService.getStaff();
-    const calculatedStats = dataService.getStats();
-
-    setTasks(loadedTasks);
-    setStaffList(loadedStaff);
-    setStats(calculatedStats);
-  };
 
   // Global Actions for Tasks
   const handleAddTaskClick = () => {
@@ -149,24 +206,30 @@ export default function App() {
     setIsTaskFormOpen(true);
   };
 
-  const handleSaveTask = (taskData) => {
-    dataService.saveTask(taskData);
-    loadAllData();
-    setIsTaskFormOpen(false);
-    setEditingTask(null);
+  const handleSaveTask = async (taskData) => {
+    try {
+      await dataService.saveTask(taskData);
+      setIsTaskFormOpen(false);
+      setEditingTask(null);
+    } catch (e) {
+      alert("Lỗi khi lưu công việc: " + e.message);
+    }
   };
 
   const handleDeleteTaskClick = (stt) => {
     setDeletingTaskStt(stt);
   };
 
-  const handleConfirmDeleteTask = () => {
+  const handleConfirmDeleteTask = async () => {
     if (deletingTaskStt) {
-      dataService.deleteTask(deletingTaskStt);
-      loadAllData();
-      setDeletingTaskStt(null);
-      // Close form modal too if it was open
-      setIsTaskFormOpen(false);
+      try {
+        await dataService.deleteTask(deletingTaskStt);
+        setDeletingTaskStt(null);
+        // Close form modal too if it was open
+        setIsTaskFormOpen(false);
+      } catch (e) {
+        alert("Lỗi khi xóa công việc: " + e.message);
+      }
     }
   };
 
@@ -175,9 +238,12 @@ export default function App() {
   };
 
   // Actions for Staff
-  const handleSaveStaff = (staffData) => {
-    dataService.saveStaff(staffData);
-    loadAllData();
+  const handleSaveStaff = async (staffData) => {
+    try {
+      await dataService.saveStaff(staffData);
+    } catch (e) {
+      alert("Lỗi khi lưu nhân viên: " + e.message);
+    }
   };
 
   const handleDeleteStaffClick = (stt) => {
@@ -186,6 +252,7 @@ export default function App() {
     if (!staff) return;
     
     const staffTasks = tasks.filter(t => {
+      if (!t.nhanSuDauMoi) return false;
       const lead = t.nhanSuDauMoi.toLowerCase();
       const name = staff.hoTen.toLowerCase();
       const lastName = staff.hoTen.split(" ").pop().toLowerCase();
@@ -200,17 +267,19 @@ export default function App() {
     setDeletingStaffStt(stt);
   };
 
-  const handleConfirmDeleteStaff = () => {
+  const handleConfirmDeleteStaff = async () => {
     if (deletingStaffStt) {
-      dataService.deleteStaff(deletingStaffStt);
-      loadAllData();
-      setDeletingStaffStt(null);
+      try {
+        await dataService.deleteStaff(deletingStaffStt);
+        setDeletingStaffStt(null);
+      } catch (e) {
+        alert("Lỗi khi xóa nhân viên: " + e.message);
+      }
     }
   };
 
   // Reload everything when system is reset to default
   const handleSystemReset = () => {
-    loadAllData();
     setCurrentPage("dashboard");
   };
 
@@ -371,6 +440,15 @@ export default function App() {
             © 2026 Bản quyền thuộc Sun Group Bà Nà Hills
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "var(--bg-main)", color: "white", gap: "16px" }}>
+        <div className="spinner" style={{ width: "50px", height: "50px", border: "4px solid rgba(255,255,255,0.1)", borderTopColor: "var(--primary-light)", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div>
+        <div style={{ fontSize: "0.9rem", fontWeight: 500, color: "var(--text-muted)" }}>Đang đồng bộ dữ liệu trực tuyến...</div>
       </div>
     );
   }

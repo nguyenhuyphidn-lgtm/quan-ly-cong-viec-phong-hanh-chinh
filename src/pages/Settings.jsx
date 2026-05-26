@@ -19,11 +19,15 @@ export default function Settings({ onResetData }) {
     { label: "3. Thấp", color: "#94a3b8", desc: "Công việc định kỳ hoặc công tác phụ hỗ trợ" }
   ];
 
-  const handleReset = () => {
-    dataService.resetData();
-    onResetData(); // notify App to reload state
-    setResetConfirm(false);
-    alert("Hệ thống đã được khôi phục dữ liệu mẫu ban đầu thành công!");
+  const handleReset = async () => {
+    try {
+      await dataService.resetData();
+      onResetData(); // notify App to reload state
+      setResetConfirm(false);
+      alert("Hệ thống đã được khôi phục dữ liệu mẫu ban đầu thành công trực tuyến!");
+    } catch (e) {
+      alert("Lỗi khi reset cơ sở dữ liệu: " + e.message);
+    }
   };
 
   return (
@@ -126,7 +130,7 @@ export default function Settings({ onResetData }) {
           <div>
             <h4 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "6px" }}>Đặt lại cơ sở dữ liệu mẫu (Reset Data)</h4>
             <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: "1.6" }}>
-              Hành động này sẽ xóa toàn bộ các thay đổi hiện tại (thêm mới, chỉnh sửa công việc/nhân sự) trong bộ nhớ LocalStorage 
+              Hành động này sẽ xóa toàn bộ các thay đổi hiện tại (thêm mới, chỉnh sửa công việc/nhân sự) trong cơ sở dữ liệu trực tuyến **Firebase Firestore**
               và đặt lại hệ thống về trạng thái ban đầu với <strong>6 công việc mẫu</strong> và <strong>10 nhân viên hành chính mẫu</strong>.
             </p>
           </div>
