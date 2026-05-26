@@ -86,6 +86,10 @@ export default function Header({ currentPage, onAddTask, setSidebarOpen }) {
         </div>
       </div>
       <div className="header-right">
+        <div className="status-badge-cloud" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", border: "1px solid rgba(22, 163, 74, 0.2)", backgroundColor: "rgba(22, 163, 74, 0.05)", borderRadius: "var(--radius-full)" }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block", boxShadow: "0 0 8px #22c55e" }}></span>
+          <span style={{ color: "#16a34a", fontWeight: 700, fontSize: "0.75rem", letterSpacing: "0.5px", textTransform: "uppercase" }}>ONLINE (ĐÃ ĐỒNG BỘ CLOUD)</span>
+        </div>
         <div className="date-badge">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "16px", height: "16px", color: "var(--primary-accent)" }}>
             <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />

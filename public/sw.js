@@ -1,4 +1,4 @@
-const CACHE_NAME = "qlcv-admin-cache-v2";
+const CACHE_NAME = "qlcv-admin-cache-v3";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -36,6 +36,23 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   // Avoid caching non-HTTP/S requests (e.g. extension scripts, vercel telemetry)
   if (!e.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // Network-First with cache fallback for navigation requests to ensure fresh content
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, networkResponse.clone());
+          });
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(e.request);
+        })
+    );
     return;
   }
 

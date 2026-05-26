@@ -99,12 +99,16 @@ export default function Sidebar({ currentPage, setCurrentPage, stats, sidebarOpe
 
   return (
     <div className={`sidebar ${sidebarOpen ? "mobile-open" : ""}`}>
-      <div className="sidebar-header">
+      <div className="sidebar-header" style={{ marginBottom: "8px" }}>
         <div className="logo-icon">HC</div>
         <div className="logo-text">
           <h1>Hành chính</h1>
           <span>BÀ NÀ HILLS</span>
         </div>
+      </div>
+      <div className="sidebar-status-cloud" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", margin: "0 16px 16px 16px", backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)", borderRadius: "var(--radius-full)" }}>
+        <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block", boxShadow: "0 0 8px #22c55e" }}></span>
+        <span style={{ color: "#4ade80", fontWeight: 700, fontSize: "0.7rem", letterSpacing: "0.5px", textTransform: "uppercase" }}>ONLINE (ĐÃ ĐỒNG BỘ CLOUD)</span>
       </div>
       <nav className="sidebar-menu">
         {menuItems.map((item) => (

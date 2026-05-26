@@ -483,14 +483,17 @@ export default function App() {
       {/* Main Content Area */}
       <div className="main-content">
         {/* Mobile Header Toggle */}
-        <div className="mobile-header">
+        <div className="mobile-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(prev => !prev)}>
               ☰
             </button>
             <strong style={{ fontSize: "0.9rem", letterSpacing: "0.5px" }}>QUẢN LÝ CÔNG VIỆC HC</strong>
           </div>
-          <span style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.6)" }}>Bà Nà Hills</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 8px", backgroundColor: "rgba(34, 197, 94, 0.12)", borderRadius: "var(--radius-full)" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block" }}></span>
+            <span style={{ color: "#4ade80", fontWeight: 700, fontSize: "0.6rem", letterSpacing: "0.2px" }}>CLOUD ONLINE</span>
+          </div>
         </div>
 
         {/* Global Page Header */}
