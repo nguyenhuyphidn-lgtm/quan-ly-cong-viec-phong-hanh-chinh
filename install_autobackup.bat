@@ -1,13 +1,12 @@
 @echo off
-chcp 65001 >nul
 :: Check for administrator privileges
 net session >nul 2>&1
 if %errorLevel% == 0 (
     goto :admin
 ) else (
     echo =========================================================================
-    echo CẢNH BÁO: Cần quyền Administrator để đăng ký tác vụ sao lưu hệ thống.
-    echo Vui lòng NHẤP CHUỘT PHẢI vào file này và chọn "Run as Administrator"!
+    echo CANH BAO: Can quyen Administrator de dang ky tac vu sao luu he thong.
+    echo Vui long NHAP CHUOT PHAI vao file nay va chon "Run as Administrator"!
     echo =========================================================================
     echo.
     pause
@@ -15,9 +14,9 @@ if %errorLevel% == 0 (
 )
 
 :admin
-echo Đang tiến hành cấu hình lịch sao lưu tự động vào lúc 16:30 hàng ngày...
+echo Dang tien hanh cau hinh lich sao luu tu dong vao luc 16:30 hang ngay...
 echo.
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0scripts\setup_scheduled_task.ps1"
 echo.
-echo Cài đặt hoàn tất! Nhấn phím bất kỳ để đóng cửa sổ này.
+echo Cai dat hoan tat! Nhan phim bat ky de dong cua so nay.
 pause
