@@ -43,10 +43,7 @@ Dữ liệu của ứng dụng được lưu trữ trực tuyến thời gian th
 Hệ thống được thiết lập tự động nén toàn bộ mã nguồn dự án thành file `.zip` (loại bỏ thư mục rác `node_modules` và `dist` để tiết kiệm dung lượng) vào lúc **16:30 hàng ngày**.
 * **Thư mục lưu trữ tệp sao lưu cục bộ**:
   `d:\01 CONG VIEC\OneDrive - sungroup.com.vn\01. BÀ NÀ\11 CHUYỂN ĐỔI SỐ\01 CÁC DỰ ÁN\03 PHÒNG HANH CHÍNH NHÂN SỰ - QUẢN LÝ CÔNG VIỆC\backups\`
-* **Cách kích hoạt/đăng ký lại lịch sao lưu trên máy tính (khi cài lại Windows hoặc đổi máy)**:
-  1. Mở công cụ **PowerShell** bằng quyền Administrator (Run as Administrator).
-  2. Copy và chạy dòng lệnh dưới đây:
-     ```powershell
-     powershell.exe -ExecutionPolicy Bypass -File "d:\01 CONG VIEC\OneDrive - sungroup.com.vn\01. BÀ NÀ\11 CHUYỂN ĐỔI SỐ\01 CÁC DỰ ÁN\03 PHÒNG HANH CHÍNH NHÂN SỰ - QUẢN LÝ CÔNG VIỆC\scripts\setup_scheduled_task.ps1"
-     ```
-  3. Khi hiện thông báo `DANG KY THANH CONG!` tức là lịch sao lưu 16:30 hàng ngày đã được kích hoạt thành công trong Windows Task Scheduler.
+* **Cách kích hoạt/đăng ký lại lịch sao lưu trên máy tính**:
+  1. Truy cập vào thư mục gốc của dự án.
+  2. Nhấp chuột phải vào tệp `install_autobackup.bat` và chọn **Run as Administrator** (Chạy với quyền Administrator).
+  3. Hệ thống sẽ tự động đăng ký tác vụ sao lưu vào Task Scheduler. Nhấn phím bất kỳ để đóng cửa sổ khi hoàn thành.
